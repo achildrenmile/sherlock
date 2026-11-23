@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hilfe – Sherlock</title>
+<meta name="description" content="Wie Sherlock arbeitet, was die Zahlen bedeuten und wo die Grenzen liegen.">
+<link rel="icon" href="/static/logo.png">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a href="https://kaernten-funkt.at" rel="noopener"><img alt="Kärnten funkt" src="/static/logo.png"></a>
+  <h1>Sherlock</h1>
+  <nav><a href="/">Auswerten</a><a href="/hilfe" aria-current="page">Hilfe</a><a href="https://kaernten-funkt.at" rel="noopener">kaernten-funkt.at</a></nav>
+</div></header>
+<main class="wrap">
+  <h2 style="margin-top:0">Wofür ist Sherlock da?</h2>
+  <p>Wenn im Netz etwas Komisches vorkommt, etwa dutzende neue Knoten in wenigen Minuten, soll jeder nachsehen können, was die Daten dazu sagen, ohne selbst Programme schreiben zu müssen. Sherlock liest nur die öffentliche Karte von CarinthiaMesh.</p>
+
+  <h2>So gehst du vor</h2>
+  <ol>
+    <li><strong>Suchen:</strong> Schritt 1 findet Zeitfenster, in denen viele neue Schlüssel erschienen sind, und nennt Anfang und Ende in UTC und MEZ.</li>
+    <li><strong>Muster bauen (optional):</strong> Wenn die neuen Knoten einen gemeinsamen Namen tragen, trägst du ein paar Beispiele ein. Sherlock schlägt ein Muster vor. Damit werden echte Knoten mit ähnlichem Namen nicht mit erfasst.</li>
+    <li><strong>Auswerten:</strong> Zeitfenster und Muster eintragen. Das Ergebnis siehst du darunter.</li>
+  </ol>
+
+  <h2>Was die Zahlen bedeuten</h2>
+  <table>
+    <tr><th>Angabe</th><th>Bedeutung</th></tr>
+    <tr><td>Je Minute</td><td>Wann die Karte die neuen Knoten zum ersten Mal sah, nicht wann sie gesendet haben.</td></tr>
+    <tr><td>Observer</td><td>Wer die Adverts gehört hat. Der häufigste Signalpegel (RSSI) sagt, ob ein fester Pegel dahintersteht, etwa ein einzelner Sender.</td></tr>
+    <tr><td>Ohne Hop</td><td>Der Observer hat das Advert direkt gehört, ohne dass ein Repeater es weitergegeben hat. Der Sender war in dessen Reichweite.</td></tr>
+    <tr><td>Erster Hop</td><td>Der Repeater, der ein Advert als erster weitergegeben hat. Der Hash hat ein Byte und passt auf mehrere Repeater.</td></tr>
+    <tr><td>Sendezeit</td><td>Obergrenze, wenn alles von einem Gerät käme, gegen die 10 % Duty Cycle gelesen. Ohne diese Annahme folgt aus den Zahlen keine Sendezeit je Gerät.</td></tr>
+  </table>
+
+  <h2>Namensmuster (reguläre Ausdrücke)</h2>
+  <table>
+    <tr><th>Muster</th><th>trifft</th></tr>
+    <tr><td><code>^AT-LV8-</code></td><td>alle Namen, die mit <code>AT-LV8-</code> beginnen</td></tr>
+    <tr><td><code>^AT-LV8-\d{6}$</code></td><td>nur <code>AT-LV8-</code> plus genau sechs Ziffern</td></tr>
+    <tr><td><code>Sensohr</code></td><td>jeder Name, in dem „Sensohr“ vorkommt</td></tr>
+    <tr><td><code>^AT-LV8-[A-Za-z]+$</code></td><td>nur ein Wort ohne Ziffern dahinter</td></tr>
+  </table>
+  <p>Das Muster darf höchstens 80 Zeichen haben. Verschachtelte Wiederholungen wie <code>(a+)+</code> sind nicht erlaubt. Im Zweifel zuerst in Schritt 2 prüfen: Die Seite zeigt, wie viele Knoten es trifft. Ein zu weites Muster erfasst auch echte Knoten.</p>
+
+  <div class="grenze">
+    <strong>Grenzen, die man kennen muss</strong>
+    <ul>
+      <li><strong>Sieben Tage.</strong> Die Karte führt nur, was in den letzten sieben Tagen gehört wurde. Eine ältere Welle ist weg.</li>
+      <li><strong>Der Name ist frei wählbar.</strong> <code>AT-LV8</code> oder jeder andere Name kann von jedem verwendet werden. Der Schlüssel auch.</li>
+      <li><strong>Ein Byte ist mehrdeutig, Pfade lassen sich fälschen.</strong> Der erste Hop zeigt, welcher Repeater am häufigsten vorn steht, nicht, wo der Sender sitzt. Ein gut vernetzter Repeater steht bei fast allem vorn.</li>
+      <li><strong>Kein Urteil über Personen.</strong> Sherlock nennt keine Namen und keine Wohnorte. Wer einen Verdacht hat, belegt ihn nicht mit dieser Seite.</li>
+    </ul>
+  </div>
+
+  <h2>Für Entwickler</h2>
+  <p>Dasselbe gibt es als Kommandozeilenwerkzeug (<code>sherlock.py</code>, Python 3, ohne Abhängigkeiten) und als kleine Website (<code>server.py</code>). Beide liegen im selben Open-Source-Repo unter der MIT-Lizenz.</p>
+
+  <h2 id="datenschutz">Was diese Seite speichert</h2>
+  <p>Die Eingaben werden an den Server geschickt, der die öffentliche Karte abfragt und das Ergebnis zurückgibt. Der Server speichert die Eingaben nicht und schreibt kein Zugriffsprotokoll. Es gibt keine Cookies, kein Tracking und keine eingebundenen Fremdinhalte. Der Reverse Proxy davor kann aus technischen Gründen IP-Adressen kurz protokollieren. Die allgemeinen Angaben stehen in der <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutzerklärung von KÄRNTEN FUNKT</a>.</p>
+</main>
+<footer><div class="wrap">
+  <p>Quelle der Daten: <a href="https://map.carinthiamesh.com" rel="noopener">map.carinthiamesh.com</a>. Open Source (MIT).</p>
+  <p><a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></p>
+</div></footer>
+</body>
+</html>

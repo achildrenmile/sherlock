@@ -115,13 +115,31 @@ def muster_aus_beispielen(beispiele):
     return '^' + re.escape(anfang) + '.*' if anfang else '.*'
 
 
+def muster_kompilieren(muster):
+    """Regex pruefen. Fuer oeffentliche Eingaben: kurz und ohne verschachtelte
+    Wiederholungen, damit kein Muster den Rechner festhaelt."""
+    if len(muster) > 80:
+        raise ValueError('Das Muster ist zu lang (hoechstens 80 Zeichen).')
+    if re.search(r'[)\]][*+{]', muster) and re.search(r'[*+{][^)]*[)][*+{]', muster):
+        raise ValueError('Verschachtelte Wiederholungen wie (a+)+ sind nicht erlaubt.')
+    try:
+        return re.compile(muster)
+    except re.error as e:
+        raise ValueError('Das Muster ist kein gueltiger regulaerer Ausdruck: %s' % e)
+
+
+def muster_treffer(muster, alle):
+    r = muster_kompilieren(muster)
+    return [n for n in alle if r.search(n['name'])]
+
+
 def pruefe_muster(muster, alle, beispiele=()):
     """Zeigt, was ein Muster in der Karte trifft."""
     try:
+        treffer = muster_treffer(muster, alle)
         r = re.compile(muster)
-    except re.error as e:
-        sys.exit('Das Muster ist kein gueltiger regulaerer Ausdruck: %s' % e)
-    treffer = [n for n in alle if r.search(n['name'])]
+    except ValueError as e:
+        sys.exit(str(e))
     print('Muster: %s' % muster)
     print('Trifft %d von %d Knoten in der Karte.' % (len(treffer), len(alle)))
     for n in sorted(treffer, key=lambda n: n.get('first_seen') or '')[:8]:
@@ -163,23 +181,21 @@ def cmd_finden(args):
     print('\nweiter mit:  auswerten --von <UTC> --bis <UTC>')
 
 
-def cmd_auswerten(args):
-    alle = knoten()
+def rechne(von, bis, name=None, liste=None, alle=None):
+    """Welle auswerten. Gibt ein Woerterbuch zurueck, wirft ValueError bei falscher Eingabe."""
+    alle = alle if alle is not None else knoten()
     nach = {n['public_key'].lower(): n for n in alle}
-    von, bis = args.von, args.bis
-    muster = None
-    if args.name:
-        try:
-            muster = re.compile(args.name)
-        except re.error as e:
-            sys.exit('--name ist kein gueltiger regulaerer Ausdruck: %s\n'
-                     'Hilfe beim Bauen:  muster --beispiel "AT-LV8-123456" "AT-LV8-654321"' % e)
+    for z in (von, bis):
+        if not re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$', z or ''):
+            raise ValueError('Zeit im Format 2026-11-21T00:10 (UTC) angeben.')
+    if von > bis:
+        raise ValueError('Der Anfang liegt nach dem Ende.')
+    muster = muster_kompilieren(name) if name else None
     neu = [n for n in alle if von <= (n.get('first_seen') or '')[:16] <= bis
            and (not muster or muster.search(n['name']))]
     if not neu:
-        sys.exit('Keine neuen Knoten im Fenster%s. Zeiten in UTC, Format 2026-11-21T00:10.%s'
-                 % (' mit diesem Namensmuster' if muster else '',
-                    '\nMuster pruefen:  muster %s' % json.dumps(args.name) if muster else ''))
+        raise ValueError('Keine neuen Knoten im Fenster%s. Zeiten in UTC.'
+                         % (' mit diesem Namensmuster' if muster else ''))
     ks = {n['public_key'].lower() for n in neu}
     t = sorted(((zeit(n['first_seen']) + MEZ, n) for n in neu), key=lambda x: x[0])
     out = collections.OrderedDict()
@@ -255,11 +271,22 @@ def cmd_auswerten(args):
                             'anteil_im_fenster_prozent': round(100 * n_send * s1 / dauer, 1),
                             'anteil_je_stunde_prozent': round(100 * n_send * s1 / 3600, 1),
                             'annahme': 'alle Adverts von einem Geraet, Obergrenze'}
-    if args.liste:
-        json.dump(sorted(ks), open(args.liste, 'w'), indent=1)
-        out['schluessel_datei'] = args.liste
+    out['schluessel'] = sorted(ks)
+    if liste:
+        json.dump(sorted(ks), open(liste, 'w'), indent=1)
+        out['schluessel_datei'] = liste
+    return out
+
+
+def cmd_auswerten(args):
+    try:
+        out = rechne(args.von, args.bis, args.name, args.liste)
+    except ValueError as e:
+        sys.exit('%s\nHilfe beim Bauen:  muster --beispiel "AT-LV8-123456" "AT-LV8-654321"' % e)
     if args.json:
-        print(json.dumps(out, indent=1, ensure_ascii=False))
+        o = dict(out)
+        o.pop('schluessel', None)
+        print(json.dumps(o, indent=1, ensure_ascii=False))
         return
     drucke(out)
 

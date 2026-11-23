@@ -43,6 +43,17 @@ Ausgegeben werden die Zahl der Treffer, Beispiele mit Datum der ersten Sichtung 
 - Sendezeit als Obergrenze (alles von einem Gerät angenommen), gegen die 10 % Duty Cycle gelesen
 - Optional die Schlüssel als JSON-Array, z. B. für eine CoreScope-`nodeBlacklist`
 
+## Website
+
+`server.py` bietet dasselbe als Website (Start, Hilfe), im Look von kaernten-funkt.at. Python 3, keine Abhängigkeiten.
+
+```bash
+python3 server.py                  # http://127.0.0.1:8080
+docker compose up -d --build       # Container, nur auf 127.0.0.1:8080
+```
+
+Betrieb (z. B. `sherlock.kaernten-funkt.at`): hinter einem Reverse Proxy mit TLS laufen lassen. Die Karte erlaubt keine Abrufe direkt aus dem Browser, deshalb fragt der Server sie ab (höchstens einmal pro Minute, 30 Anfragen pro Minute gesamt). Eingaben werden nicht gespeichert und nicht protokolliert, es gibt keine Cookies. Impressum und Datenschutz verweisen wie bei den anderen Werkzeugen auf kaernten-funkt.at. Der Reverse Proxy kann IP-Adressen protokollieren, das gehört dann in die Datenschutzangaben.
+
 ## Grenzen
 
 - **Sieben Tage.** Die Karte führt nur, was in den letzten sieben Tagen gehört wurde. Eine ältere Welle ist weg.

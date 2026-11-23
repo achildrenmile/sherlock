@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sherlock – Auffälligkeiten im Netz lesen</title>
+<meta name="description" content="Sherlock liest die öffentlichen Kartendaten von CarinthiaMesh, wenn im Netz etwas Komisches vorkommt.">
+<link rel="icon" href="/static/logo.png">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a href="https://kaernten-funkt.at" rel="noopener"><img alt="Kärnten funkt" src="/static/logo.png"></a>
+  <h1>Sherlock</h1>
+  <nav><a href="/" aria-current="page">Auswerten</a><a href="/hilfe">Hilfe</a><a href="https://kaernten-funkt.at" rel="noopener">kaernten-funkt.at</a></nav>
+</div></header>
+<main class="wrap">
+  <p class="lead">Wenn im Netz etwas Komisches vorkommt, liest Sherlock die öffentlichen Kartendaten dazu und sagt, <strong>was sich daraus sagen lässt und was nicht</strong>. Zeiten, Zahlen, Observer. Keine Personen, keine Orte.</p>
+
+  <h2>1. Gab es einen Stoß neuer Knoten?</h2>
+  <div class="karte">
+    <div class="zeile">
+      <div><label for="schwelle">Mindestens so viele neue Schlüssel</label><input id="schwelle" type="number" min="2" max="1000" value="30"></div>
+      <div><label for="luecke">Größter Abstand in Minuten</label><input id="luecke" type="number" min="1" max="120" value="10"></div>
+    </div>
+    <button class="btn" id="finden">Suchen</button>
+    <div id="finden-out" aria-live="polite"></div>
+  </div>
+
+  <h2>2. Namensmuster bauen</h2>
+  <div class="karte">
+    <p class="klein">Ein paar Namen eintragen, die erfasst werden sollen (einer pro Zeile). Sherlock schlägt ein Muster vor und zeigt, was es in der Karte trifft. Oder ein fertiges Muster (regulärer Ausdruck) prüfen.</p>
+    <label for="beispiele">Beispielnamen</label>
+    <textarea id="beispiele" rows="3" placeholder="AT-LV8-123456&#10;AT-LV8-654321"></textarea>
+    <label for="muster">oder fertiges Muster</label>
+    <input id="muster" type="text" maxlength="80" placeholder="^AT-LV8-\d{6}$">
+    <button class="btn" id="mustern">Muster prüfen</button>
+    <div id="muster-out" aria-live="polite"></div>
+  </div>
+
+  <h2>3. Auswerten</h2>
+  <div class="karte">
+    <p class="klein">Zeiten in <strong>UTC</strong>. Die Suche in Schritt 1 nennt sie mit. MEZ ist UTC plus eine Stunde.</p>
+    <div class="zeile">
+      <div><label for="von">Von</label><input id="von" type="text" placeholder="2026-11-20T23:40" maxlength="16"></div>
+      <div><label for="bis">Bis</label><input id="bis" type="text" placeholder="2026-11-21T00:10" maxlength="16"></div>
+    </div>
+    <label for="name">Namensmuster (optional)</label>
+    <input id="name" type="text" maxlength="80" placeholder="^AT-LV8-">
+    <button class="btn" id="auswerten">Auswerten</button>
+    <button class="btn sek" id="schluessel" type="button" hidden>Schlüssel als JSON laden</button>
+    <div id="auswerten-out" aria-live="polite"></div>
+  </div>
+
+  <div class="grenze"><strong>Grenzen.</strong> Der Name und der Schlüssel eines Knotens sind frei wählbar. Der erste Hop zeigt das bestvernetzte Gerät, nicht den Sender. Pfade können gefälscht sein. Sherlock fällt kein Urteil über Personen. Mehr dazu in der <a href="/hilfe">Hilfe</a>.</div>
+</main>
+<footer><div class="wrap">
+  <p>Quelle der Daten: <a href="https://map.carinthiamesh.com" rel="noopener">map.carinthiamesh.com</a>, nur die letzten sieben Tage. Open Source (MIT).</p>
+  <p><a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a> · <a href="/hilfe#datenschutz">Was diese Seite speichert</a></p>
+</div></footer>
+<script src="/static/app.js"></script>
+</body>
+</html>
