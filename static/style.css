@@ -48,6 +48,7 @@ pre{background:var(--bg-alt);border:1px solid var(--line);border-radius:.4rem;pa
 .hero-chips li strong{color:var(--primary)}
 .hero-chips li span:last-child{font-size:.9rem;color:var(--text-light)}
 .chip-nr{align-self:flex-start;width:1.6rem;height:1.6rem;line-height:1.6rem;text-align:center;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:.9rem}
+main.wrap{padding-top:2.5rem;padding-bottom:3.5rem}
 h2.erste{margin-top:0}
 main a{color:var(--primary);font-weight:600;text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:.15em}
 main a:hover{color:var(--accent)}
