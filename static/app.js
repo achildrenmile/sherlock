@@ -23,7 +23,7 @@
   $('finden').addEventListener('click', function () {
     var q = 'schwelle=' + encodeURIComponent($('schwelle').value) + '&luecke=' + encodeURIComponent($('luecke').value);
     lade('/api/finden?' + q, 'finden-out', function (d) {
-      if (!d.stoesse.length) { $('finden-out').innerHTML = '<p>Kein Stoß gefunden: nie ' + d.schwelle + ' oder mehr neue Schlüssel mit Abständen unter ' + d.luecke_min + ' Minuten.</p>'; return; }
+      if (!d.stoesse.length) { $('finden-out').innerHTML = '<p>Nichts Auffälliges gefunden: keine Häufung von ' + d.schwelle + ' oder mehr neuen Schlüsseln mit Abständen unter ' + d.luecke_min + ' Minuten.</p>'; return; }
       $('finden-out').innerHTML = tab(['UTC', 'MEZ', 'Neue Schlüssel', ''], d.stoesse.map(function (s) {
         return [esc(s.von_utc) + ' bis ' + esc(s.bis_utc.slice(11)), esc(s.von_mez) + ' bis ' + esc(s.bis_mez), s.knoten,
           '<button class="btn sek" data-von="' + esc(s.von_utc) + '" data-bis="' + esc(s.bis_utc) + '">übernehmen</button>'];
