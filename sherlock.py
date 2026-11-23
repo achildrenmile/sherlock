@@ -115,13 +115,90 @@ def muster_aus_beispielen(beispiele):
     return '^' + re.escape(anfang) + '.*' if anfang else '.*'
 
 
+def einfach_zu_regex(muster):
+    """Einfache Muster (# = Ziffer, ? = ein Zeichen, * = beliebig viele) in einen Regex wandeln.
+    Ohne Platzhalter: Name enthaelt den Text. Mit Regex-Zeichen: unveraendert."""
+    if re.search(r'[\^$\\()\[\]{}+|]', muster):
+        return muster
+    if not re.search(r'[#?*]', muster):
+        return re.escape(muster)
+    out = []
+    for t in re.findall(r'#+|\?|\*|[^#?*]+', muster):
+        if t[0] == '#':
+            out.append(r'\d{%d}' % len(t) if len(t) > 1 else r'\d')
+        elif t == '?':
+            out.append('.')
+        elif t == '*':
+            out.append('.*')
+        else:
+            out.append(re.escape(t))
+    return '^' + ''.join(out) + '$'
+
+
+_BAUSTEIN = re.compile(r'\\d\{(\d+)\}|\\d\+|\\d|\[\^\\W\\d_\]\+|\.\*|\.\+|\.|\\(.)|[^\\^$.\[\]*+{}()|?]+')
+
+
+def erklaere(regex):
+    """Ein Muster in einem deutschen Satz beschreiben (nur fuer bekannte Bausteine, sonst None)."""
+    anfang = regex.startswith('^')
+    ende = regex.endswith('$') and not regex.endswith('\\$')
+    k = regex[1:] if anfang else regex
+    k = k[:-1] if ende else k
+    teile, pos = [], 0
+    while pos < len(k):
+        m = _BAUSTEIN.match(k, pos)
+        if not m:
+            return None
+        t = m.group(0)
+        if m.group(1):
+            teile.append('%s Ziffern' % m.group(1))
+        elif t == '\\d':
+            teile.append('eine Ziffer')
+        elif t == '\\d+':
+            teile.append('Ziffern')
+        elif t.startswith('[^'):
+            teile.append('Buchstaben')
+        elif t in ('.*', '.+'):
+            teile.append('beliebige Zeichen')
+        elif t == '.':
+            teile.append('ein beliebiges Zeichen')
+        elif m.group(2):
+            teile.append('\u201e%s\u201c' % m.group(2))
+        else:
+            teile.append('\u201e%s\u201c' % t)
+        pos = m.end()
+    if not teile:
+        return None
+    zus = []
+    for t in teile:
+        if zus and zus[-1].startswith('\u201e') and t.startswith('\u201e'):
+            zus[-1] = zus[-1][:-1] + t[1:]
+        else:
+            zus.append(t)
+    kopf = ('Namen, die genau so aufgebaut sind' if anfang and ende else
+            'Namen, die so beginnen' if anfang else
+            'Namen, die so enden' if ende else
+            'Namen, in denen irgendwo vorkommt')
+    return '%s: %s' % (kopf, ', dann '.join(zus))
+
+
 def muster_kompilieren(muster):
-    """Regex pruefen. Fuer oeffentliche Eingaben: kurz und ohne verschachtelte
-    Wiederholungen, damit kein Muster den Rechner festhaelt."""
+    """Muster pruefen und kompilieren. Fuer oeffentliche Eingaben: kurz und ohne alles,
+    was einen Regex katastrophal langsam machen kann (Wiederholung von Gruppen, Rueckbezuege,
+    Lookarounds, viele offene Wiederholungen)."""
     if len(muster) > 80:
         raise ValueError('Das Muster ist zu lang (hoechstens 80 Zeichen).')
-    if re.search(r'[)\]][*+{]', muster) and re.search(r'[*+{][^)]*[)][*+{]', muster):
-        raise ValueError('Verschachtelte Wiederholungen wie (a+)+ sind nicht erlaubt.')
+    if any(ord(c) < 32 for c in muster):
+        raise ValueError('Das Muster enthaelt Steuerzeichen.')
+    muster = einfach_zu_regex(muster)
+    if re.search(r'\)[*+?{]', muster):
+        raise ValueError('Wiederholungen von Gruppen wie (ab)+ sind nicht erlaubt.')
+    if '(?' in muster or re.search(r'\\[1-9kK]', muster):
+        raise ValueError('Rueckbezuege und Lookarounds sind nicht erlaubt.')
+    if len(re.findall(r'(?<!\\)(?:[*+]|\{\d+,\d*\})', muster)) > 3:
+        raise ValueError('Zu viele offene Wiederholungen (hoechstens 3 von * + oder {n,}).')
+    if any(int(a) > 80 or (b and int(b) > 80) for a, b in re.findall(r'\{(\d+)(?:,(\d*))?\}', muster)):
+        raise ValueError('Zahlen in {} duerfen hoechstens 80 sein.')
     try:
         return re.compile(muster)
     except re.error as e:
@@ -130,14 +207,14 @@ def muster_kompilieren(muster):
 
 def muster_treffer(muster, alle):
     r = muster_kompilieren(muster)
-    return [n for n in alle if r.search(n['name'])]
+    return [n for n in alle if r.search(n['name'][:100])]
 
 
 def pruefe_muster(muster, alle, beispiele=()):
     """Zeigt, was ein Muster in der Karte trifft."""
     try:
         treffer = muster_treffer(muster, alle)
-        r = re.compile(muster)
+        r = muster_kompilieren(muster)
     except ValueError as e:
         sys.exit(str(e))
     print('Muster: %s' % muster)
@@ -192,7 +269,7 @@ def rechne(von, bis, name=None, liste=None, alle=None):
         raise ValueError('Der Anfang liegt nach dem Ende.')
     muster = muster_kompilieren(name) if name else None
     neu = [n for n in alle if von <= (n.get('first_seen') or '')[:16] <= bis
-           and (not muster or muster.search(n['name']))]
+           and (not muster or muster.search(n['name'][:100]))]
     if not neu:
         raise ValueError('Keine neuen Knoten im Fenster%s. Zeiten in UTC.'
                          % (' mit diesem Namensmuster' if muster else ''))

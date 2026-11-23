@@ -38,6 +38,8 @@ python3 sherlock.py muster --muster '^AT-LV8-'    # eigenes Muster nur prüfen
 
 Ausgegeben werden die Zahl der Treffer, Beispiele mit Datum der ersten Sichtung und ein Hinweis, wenn das Muster nicht auf die eigenen Beispiele passt. Das Muster immer gegen die Treffer lesen: ein zu weites Muster erfasst auch echte Knoten.
 
+Einfache Muster gehen auch ohne Regex: `#` = eine Ziffer, `?` = ein Zeichen, `*` = beliebig viele (`AT-LV8-######`, `AT-LV8-*`); ohne Platzhalter genügt ein enthaltener Text. Reguläre Ausdrücke bleiben möglich, sind aber begrenzt (höchstens 80 Zeichen, keine Gruppenwiederholungen, Rückbezüge, Lookarounds oder mehr als drei offene Wiederholungen), damit niemand den Server mit einem katastrophalen Muster lahmlegen kann.
+
 ## Was herauskommt
 
 - Wie viele neue Knoten, welche Rollen, welche Namen, welche Hash-Größe, wie viele Adverts je Knoten
@@ -89,6 +91,7 @@ Dauer vom Push bis live: wenige Minuten. Den Status zeigt der Commit-Status auf 
 - Im Normalfall nur auf `main` pushen (oder PR mergen), alles Weitere läuft von selbst. Nicht im GitOps-Repo am Tag drehen, außer für einen Rollback.
 - Keine Geheimnisse und keine internen Hostnamen in dieses Repo. Der Server braucht keine Konfiguration, er hat keine Zugangsdaten.
 - Der Server setzt eine strenge Content-Security-Policy (`default-src 'self'`): keine Inline-Styles, keine Inline-Skripte, keine externen Schriften oder Bilder.
+- Härtung: nur GET, nur freigegebene statische Dateien, URL-Länge und gleichzeitige Anfragen begrenzt, Timeout für träge Verbindungen, strenge CSP mit `frame-ancestors 'none'`, keine Server-Versionsangabe. Ein Limit pro Client gibt es nicht (dafür wären IP-Adressen nötig); der Schutz vor Überlast ist global.
 - Datenschutz: der Server speichert und protokolliert keine Eingaben und keine IP-Adressen. Die Infrastruktur davor (z. B. Cloudflare) sieht Verbindungsdaten, das steht in der Datenschutzangabe auf der Hilfe-Seite.
 - Ein Fehlschlag der Pipeline ist am roten Commit-Status zu sehen. Dann den Fehler beheben und erneut pushen.
 
@@ -99,6 +102,8 @@ Dauer vom Push bis live: wenige Minuten. Den Status zeigt der Commit-Status auf 
 ## Mitmachen
 
 Fehler und Vorschläge gern als Issue. Änderungen als Pull Request, bitte mit einem Satz, was sich aus den Daten ändert und was nicht.
+
+Die Version steht in der Datei `VERSION` und erscheint im Footer der Website. Bei sichtbaren Änderungen bitte hochzählen.
 
 ## Lizenz
 

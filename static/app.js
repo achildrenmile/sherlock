@@ -37,6 +37,10 @@
     });
   });
 
+  Array.prototype.forEach.call(document.querySelectorAll('.bsp'), function (b) {
+    b.addEventListener('click', function () { $('muster').value = b.getAttribute('data-m'); $('beispiele').value = ''; $('mustern').click(); });
+  });
+
   $('mustern').addEventListener('click', function () {
     var bsp = $('beispiele').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
     var q = bsp.map(function (b) { return 'beispiel=' + encodeURIComponent(b); }).join('&');
@@ -48,6 +52,7 @@
       if (d.fehlt_bei.length) h += '<p class="fehler">Passt nicht auf die eigenen Beispiele: ' + esc(d.fehlt_bei.join(', ')) + '</p>';
       if (d.beispiele.length) h += tab(['Erste Sichtung (UTC)', 'Rolle', 'Name'], d.beispiele.map(function (b) { return [esc(b.erste_sichtung), esc(b.rolle), esc(b.name)]; }));
       if (d.treffer > d.beispiele.length) h += '<p class="klein">… und ' + (d.treffer - d.beispiele.length) + ' weitere</p>';
+      if (d.erklaerung) h += '<p>' + esc(d.erklaerung) + '</p>';
       h += '<p class="klein">Das Muster gegen die Treffer lesen: Ein zu weites Muster erfasst auch echte Knoten.</p>';
       $('muster-out').innerHTML = h;
       $('uebernehmen').addEventListener('click', function () { $('name').value = d.muster; $('auswerten').scrollIntoView({ behavior: 'smooth' }); });

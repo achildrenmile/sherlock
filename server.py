@@ -24,6 +24,11 @@ TYPEN = {'.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
          '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml'}
 SEITEN = {'/': 'index.html', '/hilfe': 'hilfe.html'}
 
+try:
+    VERSION = open(os.path.join(HIER, 'VERSION'), encoding='utf-8').read().strip()
+except OSError:
+    VERSION = 'dev'
+
 _cache = {'t': 0.0, 'daten': None}
 _lock = threading.Lock()
 _anfragen = []     # Zeitstempel der letzten Minute, grob gegen Missbrauch
@@ -64,7 +69,7 @@ def api_finden(q):
 
 def api_muster(q):
     alle = knoten_gecacht()
-    bsp = [b.strip() for b in q.get('beispiel', []) if b.strip()][:12]
+    bsp = [b.strip() for b in q.get('beispiel', [])[:40] if b.strip()][:12]
     muster = (q.get('muster', [''])[0]).strip()
     if bsp:
         if any(len(b) > 64 for b in bsp):
@@ -77,7 +82,8 @@ def api_muster(q):
     return {'muster': muster, 'aus_beispielen': bool(bsp), 'treffer': len(treffer), 'gesamt': len(alle),
             'beispiele': [{'erste_sichtung': (n.get('first_seen') or '')[:16], 'rolle': n['role'],
                            'name': n['name']} for n in treffer[:12]],
-            'fehlt_bei': [b for b in bsp if not re.search(muster, b)]}
+            'fehlt_bei': [b for b in bsp if not sherlock.muster_kompilieren(muster).search(b)],
+            'erklaerung': sherlock.erklaere(sherlock.einfach_zu_regex(muster))}
 
 
 def api_auswerten(q):
@@ -93,8 +99,16 @@ def api_auswerten(q):
 API = {'/api/finden': api_finden, '/api/muster': api_muster, '/api/auswerten': api_auswerten}
 
 
+ERLAUBT = {f for f in os.listdir(STATIC) if os.path.isfile(os.path.join(STATIC, f)) and not f.startswith('.')}
+GLEICHZEITIG = threading.BoundedSemaphore(48)
+MAX_URL = 1500
+
+
 class H(BaseHTTPRequestHandler):
     server_version = 'sherlock'
+    sys_version = ''
+    timeout = 10                        # langsame oder haengende Verbindungen kappen
+    protocol_version = 'HTTP/1.0'
 
     def log_message(self, *a):          # nichts protokollieren
         pass
@@ -107,11 +121,34 @@ class H(BaseHTTPRequestHandler):
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
         self.send_header('Content-Security-Policy',
-                         "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'")
+                         "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+                         "base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'")
+        self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
+        self.send_header('Cross-Origin-Resource-Policy', 'same-origin')
+        self.send_header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()')
         self.end_headers()
         self.wfile.write(daten)
 
     def do_GET(self):
+        if not GLEICHZEITIG.acquire(blocking=False):
+            return self.senden(503, 'text/plain; charset=utf-8', b'ausgelastet')
+        try:
+            self.bearbeite()
+        finally:
+            GLEICHZEITIG.release()
+
+    def methode_nicht_erlaubt(self):
+        self.send_response(405)
+        self.send_header('Allow', 'GET')
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+
+    do_POST = do_PUT = do_DELETE = do_PATCH = do_OPTIONS = do_HEAD = methode_nicht_erlaubt
+
+    def bearbeite(self):
+        if len(self.path) > MAX_URL:
+            return self.senden(414, 'text/plain; charset=utf-8', b'URL zu lang')
         u = urllib.parse.urlparse(self.path)
         if u.path in API:
             if not erlaubt():
@@ -124,14 +161,16 @@ class H(BaseHTTPRequestHandler):
                 return self.antwort_json(502, {'fehler': 'Die Karte antwortet gerade nicht.'})
         datei = SEITEN.get(u.path)
         if not datei and u.path.startswith('/static/'):
-            datei = os.path.basename(u.path)
-        if not datei:
+            datei = u.path[len('/static/'):]
+        if not datei or datei not in ERLAUBT and datei not in SEITEN.values():
             return self.senden(404, 'text/plain; charset=utf-8', b'nicht gefunden')
         pfad = os.path.join(STATIC, datei)
         try:
             daten = open(pfad, 'rb').read()
         except OSError:
             return self.senden(404, 'text/plain; charset=utf-8', b'nicht gefunden')
+        if datei.endswith('.html'):
+            daten = daten.replace(b'@@VERSION@@', VERSION.encode())
         self.senden(200, TYPEN.get(os.path.splitext(pfad)[1], 'application/octet-stream'), daten,
                     'public, max-age=300')
 
@@ -143,4 +182,6 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', '8080'))
     host = os.environ.get('HOST', '127.0.0.1')
     print('Sherlock auf http://%s:%d' % (host, port))
+    ThreadingHTTPServer.daemon_threads = True
+    ThreadingHTTPServer.request_queue_size = 64
     ThreadingHTTPServer((host, port), H).serve_forever()

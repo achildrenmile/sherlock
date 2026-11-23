@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hilfe â Sherlock Mesh</title>
+<title>Hilfe – Sherlock Mesh</title>
 <meta name="description" content="Wie Sherlock arbeitet, was die Zahlen bedeuten und wo die Grenzen liegen.">
 <link rel="icon" href="/static/logo.png">
 <link rel="stylesheet" href="/static/style.css">
@@ -46,7 +46,18 @@
     <tr><td>Sendezeit</td><td>Obergrenze, wenn alles von einem Gerät käme, gegen die 10 % Duty Cycle gelesen. Ohne diese Annahme folgt aus den Zahlen keine Sendezeit je Gerät.</td></tr>
   </table>
 
-  <h2>Namensmuster (reguläre Ausdrücke)</h2>
+  <h2>Namensmuster einfach</h2>
+  <table>
+    <tr><th>Muster</th><th>trifft</th></tr>
+    <tr><td><code>Sensohr</code></td><td>jeder Name, in dem „Sensohr“ vorkommt</td></tr>
+    <tr><td><code>AT-LV8-*</code></td><td>alle Namen, die mit <code>AT-LV8-</code> beginnen</td></tr>
+    <tr><td><code>AT-LV8-######</code></td><td>nur <code>AT-LV8-</code> plus genau sechs Ziffern</td></tr>
+    <tr><td><code>AT-??-*</code></td><td>zwei beliebige Zeichen nach <code>AT-</code>, danach egal was</td></tr>
+  </table>
+  <p>Platzhalter: <code>#</code> steht für eine Ziffer, <code>?</code> für ein beliebiges Zeichen, <code>*</code> für beliebig viele. Mit Platzhaltern muss der ganze Name passen, ohne Platzhalter genügt es, wenn der Text irgendwo vorkommt. Wer keine Muster schreiben mag, trägt in Schritt 2 einfach ein paar Beispielnamen ein. Sherlock schlägt dann ein Muster vor und erklärt es in einem Satz.</p>
+
+  <h2>Für Fortgeschrittene: reguläre Ausdrücke</h2>
+  <p>Sobald ein Muster eines der Zeichen <code>^ $ \ ( ) [ ] { } + |</code> enthält, wird es als regulärer Ausdruck gelesen:</p>
   <table>
     <tr><th>Muster</th><th>trifft</th></tr>
     <tr><td><code>^AT-LV8-</code></td><td>alle Namen, die mit <code>AT-LV8-</code> beginnen</td></tr>
@@ -76,12 +87,13 @@
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand"><img src="/static/logo.png" alt="MeshCore" width="56" height="56"><img src="/static/sherlock.svg" alt="" width="56" height="56"><div><strong>SHERLOCK MESH</strong><p>Der Detektiv im MeshCore</p></div></div>
+        <div class="footer-brand"><img src="/static/logo.png" alt="MeshCore" width="56" height="56"><img src="/static/sherlock.svg" alt="" width="56" height="56"><div><strong>SHERLOCK MESH</strong><p>Der Detektiv im CarinthiaMesh</p></div></div>
         <p>Ein Werkzeug von KÄRNTEN FUNKT für CarinthiaMesh. Open Source (MIT).</p>
       </div>
       <div>
         <h3>Sherlock</h3>
-        <div class="footer-links"><a href="/">Auswerten</a><a href="/hilfe">Hilfe</a><a href="/hilfe#datenschutz">Was diese Seite speichert</a></div>
+        <div class="footer-links"><a href="/">Auswerten</a><a href="/hilfe">Hilfe</a><a href="/hilfe#datenschutz">Was diese Seite speichert</a><a href="https://github.com/achildrenmile/sherlock" rel="noopener">Quellcode auf GitHub</a></div>
+        <p class="klein-f">Mitmachen erwünscht: Fehler, Ideen und Pull Requests sind willkommen.</p>
       </div>
       <div>
         <h3>Quellen</h3>
@@ -89,7 +101,7 @@
         <p class="klein-f">Nur die letzten sieben Tage der öffentlichen Karte.</p>
       </div>
     </div>
-    <div class="footer-bottom"><a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></div>
+    <div class="footer-bottom">Version @@VERSION@@ · <a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></div>
   </div>
 </footer>
 </body>

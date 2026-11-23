@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sherlock Mesh â Der Detektiv im MeshCore</title>
-<meta name="description" content="Sherlock Mesh liest die Ã¶ffentlichen Kartendaten von CarinthiaMesh: Muster erkennen, aufspÃ¼ren, Fakten finden.">
+<title>Sherlock Mesh – Der Detektiv im CarinthiaMesh</title>
+<meta name="description" content="Sherlock Mesh liest die öffentlichen Kartendaten von CarinthiaMesh: Muster erkennen, aufspüren, Fakten finden.">
 <link rel="icon" href="/static/logo.png">
 <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -29,7 +29,7 @@
   <div class="wrap">
     <img src="/static/sherlock.svg" alt="Sherlock: Deerstalker-Mütze und Lupe" class="hero-logo" width="150" height="150">
     <p class="hero-kicker">Sherlock Mesh</p>
-    <h1>Der Detektiv im MeshCore</h1>
+    <h1>Der Detektiv im CarinthiaMesh</h1>
     <p class="hero-sub">Im Netz taucht etwas Seltsames auf? Sherlock folgt den Spuren in den öffentlichen Kartendaten: <strong>Muster erkennen. Aufspüren. Fakten finden.</strong> Keine Vermutungen über Personen, nur Zeiten, Zahlen und Observer.</p>
     <ul class="hero-chips">
       <li><span class="chip-nr">1</span><strong>Muster erkennen</strong><span>Ein Schwall neuer Knoten in wenigen Minuten?</span></li>
@@ -51,11 +51,15 @@
 
   <h2>2. Namensmuster bauen</h2>
   <div class="karte">
-    <p class="klein">Ein paar Namen eintragen, die erfasst werden sollen (einer pro Zeile). Sherlock schlägt ein Muster vor und zeigt, was es in der Karte trifft. Oder ein fertiges Muster (regulärer Ausdruck) prüfen.</p>
+    <p class="klein">Ein paar Namen eintragen, die erfasst werden sollen (einer pro Zeile). Sherlock schlägt ein Muster vor und zeigt, was es in der Karte trifft. Oder ein eigenes Muster mit Platzhaltern prüfen.</p>
     <label for="beispiele">Beispielnamen</label>
     <textarea id="beispiele" rows="3" placeholder="AT-LV8-123456&#10;AT-LV8-654321"></textarea>
-    <label for="muster">oder fertiges Muster</label>
-    <input id="muster" type="text" maxlength="80" placeholder="^AT-LV8-\d{6}$">
+    <label for="muster">oder eigenes Muster</label>
+    <input id="muster" type="text" maxlength="80" placeholder="AT-LV8-######">
+    <p class="klein">Platzhalter: <code>#</code> = eine Ziffer, <code>?</code> = ein beliebiges Zeichen, <code>*</code> = beliebig viele Zeichen. Ohne Platzhalter reicht es, wenn der Name den Text enthält. Zum Ausprobieren:
+      <button type="button" class="btn sek bsp" data-m="AT-LV8-######">AT-LV8-######</button>
+      <button type="button" class="btn sek bsp" data-m="AT-LV8-*">AT-LV8-*</button>
+      <button type="button" class="btn sek bsp" data-m="Sensohr">Sensohr</button></p>
     <button class="btn" id="mustern">Muster prüfen</button>
     <div id="muster-out" aria-live="polite"></div>
   </div>
@@ -67,8 +71,8 @@
       <div><label for="von">Von</label><input id="von" type="text" placeholder="2026-11-20T23:40" maxlength="16"></div>
       <div><label for="bis">Bis</label><input id="bis" type="text" placeholder="2026-11-21T00:10" maxlength="16"></div>
     </div>
-    <label for="name">Namensmuster (optional)</label>
-    <input id="name" type="text" maxlength="80" placeholder="^AT-LV8-">
+    <label for="name">Namensmuster (optional, wie in Schritt 2)</label>
+    <input id="name" type="text" maxlength="80" placeholder="AT-LV8-*">
     <button class="btn" id="auswerten">Auswerten</button>
     <button class="btn sek" id="schluessel" type="button" hidden>Schlüssel als JSON laden</button>
     <div id="auswerten-out" aria-live="polite"></div>
@@ -80,12 +84,13 @@
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand"><img src="/static/logo.png" alt="MeshCore" width="56" height="56"><img src="/static/sherlock.svg" alt="" width="56" height="56"><div><strong>SHERLOCK MESH</strong><p>Der Detektiv im MeshCore</p></div></div>
+        <div class="footer-brand"><img src="/static/logo.png" alt="MeshCore" width="56" height="56"><img src="/static/sherlock.svg" alt="" width="56" height="56"><div><strong>SHERLOCK MESH</strong><p>Der Detektiv im CarinthiaMesh</p></div></div>
         <p>Ein Werkzeug von KÄRNTEN FUNKT für CarinthiaMesh. Open Source (MIT).</p>
       </div>
       <div>
         <h3>Sherlock</h3>
-        <div class="footer-links"><a href="/">Auswerten</a><a href="/hilfe">Hilfe</a><a href="/hilfe#datenschutz">Was diese Seite speichert</a></div>
+        <div class="footer-links"><a href="/">Auswerten</a><a href="/hilfe">Hilfe</a><a href="/hilfe#datenschutz">Was diese Seite speichert</a><a href="https://github.com/achildrenmile/sherlock" rel="noopener">Quellcode auf GitHub</a></div>
+        <p class="klein-f">Mitmachen erwünscht: Fehler, Ideen und Pull Requests sind willkommen.</p>
       </div>
       <div>
         <h3>Quellen</h3>
@@ -93,7 +98,7 @@
         <p class="klein-f">Nur die letzten sieben Tage der öffentlichen Karte.</p>
       </div>
     </div>
-    <div class="footer-bottom"><a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></div>
+    <div class="footer-bottom">Version @@VERSION@@ · <a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></div>
   </div>
 </footer>
 <script src="/static/app.js"></script>

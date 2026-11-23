@@ -1,6 +1,6 @@
 FROM python:3.12-alpine
 WORKDIR /app
-COPY sherlock.py server.py ./
+COPY sherlock.py server.py VERSION ./
 COPY static ./static
 RUN adduser -D -u 10001 sherlock
 USER sherlock
