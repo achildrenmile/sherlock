@@ -71,10 +71,30 @@ Betrieb (z. B. `sherlock.kaernten-funkt.at`): hinter einem Reverse Proxy mit TLS
 
 Sherlock ist für die Frage gedacht, **was im Netz passiert ist**, nicht **wer** es war. Es nennt keine Personen und keine Wohnorte, und eine Zahl wie „der erste Hop“ ist kein Beleg gegen jemanden. Wer einen Verdacht hat, belegt ihn nicht mit diesem Werkzeug.
 
+## Betrieb
+
+Jeder Push auf `main` rollt automatisch aus, ohne manuellen Schritt:
+
+1. GitHub schickt einen Push-Webhook (signiert) an den Build-Dienst des Betreibers (Tekton).
+2. Die Pipeline prüft den Code mit einem Smoke-Test: `py_compile`, Server starten, dann `GET /`, `GET /hilfe`, `GET /api/finden` und `GET /api/muster?muster=^AT-`. Schlägt etwas fehl, wird nichts gebaut und nichts ausgerollt.
+3. Kaniko baut das `Dockerfile` und legt das Image als `ghcr.io/achildrenmile/sherlock:<voller Commit-SHA>` ab. Der Tag ist immer der Commit, es gibt kein `latest`.
+4. Die Pipeline trägt den neuen Tag im GitOps-Repo des Betreibers (`dcsetup`, `k8s/apps/mesh/sherlock/kustomization.yaml`, Feld `newTag`) ein und committet das.
+5. ArgoCD erkennt die Änderung und rollt das Deployment aus (Rolling Update, Healthcheck `GET /hilfe`).
+
+Dauer vom Push bis live: wenige Minuten. Den Status zeigt der Commit-Status auf GitHub (pending, success, failure).
+
+**Rollback (ein Schritt):** im GitOps-Repo `newTag` in `k8s/apps/mesh/sherlock/kustomization.yaml` auf den SHA eines früheren, guten Commits setzen (oder den Bump-Commit zurücknehmen). Das alte Image liegt noch in GHCR. Der nächste Push auf `main` baut wieder vorwärts, also zuerst den fehlerhaften Commit hier mit `git revert` korrigieren.
+
+**Für Agenten und Mitwirkende:**
+- Im Normalfall nur auf `main` pushen (oder PR mergen), alles Weitere läuft von selbst. Nicht im GitOps-Repo am Tag drehen, außer für einen Rollback.
+- Keine Geheimnisse und keine internen Hostnamen in dieses Repo. Der Server braucht keine Konfiguration, er hat keine Zugangsdaten.
+- Der Server setzt eine strenge Content-Security-Policy (`default-src 'self'`): keine Inline-Styles, keine Inline-Skripte, keine externen Schriften oder Bilder.
+- Datenschutz: der Server speichert und protokolliert keine Eingaben und keine IP-Adressen. Die Infrastruktur davor (z. B. Cloudflare) sieht Verbindungsdaten, das steht in der Datenschutzangabe auf der Hilfe-Seite.
+- Ein Fehlschlag der Pipeline ist am roten Commit-Status zu sehen. Dann den Fehler beheben und erneut pushen.
+
 ## Geplant
 
 - Weitere Prüfungen für „komisch“: gleiche Namen mit vielen Schlüsseln, Positionssprünge (Knoten plötzlich weit weg), auffällige Umbenennungen, Uhr-Sprünge
-- Automatisches Ausrollen per GitHub Actions bei jedem Push auf `main`
 
 ## Mitmachen
 

@@ -3,19 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hilfe – Sherlock</title>
+<title>Hilfe â Sherlock Mesh</title>
 <meta name="description" content="Wie Sherlock arbeitet, was die Zahlen bedeuten und wo die Grenzen liegen.">
 <link rel="icon" href="/static/logo.png">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header class="bar"><div class="wrap">
-  <a href="https://kaernten-funkt.at" rel="noopener"><img alt="Kärnten funkt" src="/static/logo.png"></a>
-  <h1>Sherlock</h1>
-  <nav><a href="/">Auswerten</a><a href="/hilfe" aria-current="page">Hilfe</a><a href="https://kaernten-funkt.at" rel="noopener">kaernten-funkt.at</a></nav>
-</div></header>
+<header class="site-header">
+  <svg class="header-waves" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 64" preserveAspectRatio="none">
+    <path d="M0,32 Q80,8 160,32 T320,32 T480,32 T640,32 T800,32 T960,32 T1120,32 T1280,32" fill="none" stroke="rgba(120,185,60,0.35)" stroke-width="1.2"/>
+    <path d="M0,32 Q80,56 160,32 T320,32 T480,32 T640,32 T800,32 T960,32 T1120,32 T1280,32" fill="none" stroke="rgba(120,185,60,0.35)" stroke-width="1.2"/>
+    <path d="M0,32 Q60,14 120,32 T240,32 T360,32 T480,32 T600,32 T720,32 T840,32 T960,32 T1080,32 T1200,32 T1280,32" fill="none" stroke="rgba(193,175,75,0.4)" stroke-width="1"/>
+    <path d="M0,32 Q60,50 120,32 T240,32 T360,32 T480,32 T600,32 T720,32 T840,32 T960,32 T1080,32 T1200,32 T1280,32" fill="none" stroke="rgba(193,175,75,0.4)" stroke-width="1"/>
+  </svg>
+  <div class="header-inner">
+    <a href="/" class="header-brand"><img src="/static/logo.png" alt="MeshCore" class="header-logo" width="45" height="45"><span class="header-brand-text">SHERLOCK MESH</span></a>
+    <nav class="header-nav">
+      <a href="/">Auswerten</a>
+      <a href="/hilfe" aria-current="page" class="active">Hilfe</a>
+      <a href="https://kaernten-funkt.at" rel="noopener" class="nav-cta">kaernten-funkt.at</a>
+    </nav>
+  </div>
+</header>
 <main class="wrap">
-  <h2 style="margin-top:0">Wofür ist Sherlock da?</h2>
+  <h2 class="erste">Wofür ist Sherlock da?</h2>
   <p>Wenn im Netz etwas Komisches vorkommt, etwa dutzende neue Knoten in wenigen Minuten, soll jeder nachsehen können, was die Daten dazu sagen, ohne selbst Programme schreiben zu müssen. Sherlock liest nur die öffentliche Karte von CarinthiaMesh.</p>
 
   <h2>So gehst du vor</h2>
@@ -61,9 +72,25 @@
   <h2 id="datenschutz">Was diese Seite speichert</h2>
   <p>Die Eingaben werden an den Server geschickt, der die öffentliche Karte abfragt und das Ergebnis zurückgibt. Der Server speichert die Eingaben nicht und schreibt kein Zugriffsprotokoll. Es gibt keine Cookies, kein Tracking und keine eingebundenen Fremdinhalte. Der Reverse Proxy davor kann aus technischen Gründen IP-Adressen kurz protokollieren. Die allgemeinen Angaben stehen in der <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutzerklärung von KÄRNTEN FUNKT</a>.</p>
 </main>
-<footer><div class="wrap">
-  <p>Quelle der Daten: <a href="https://map.carinthiamesh.com" rel="noopener">map.carinthiamesh.com</a>. Open Source (MIT).</p>
-  <p><a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></p>
-</div></footer>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><img src="/static/logo.png" alt="MeshCore" width="56" height="56"><div><strong>SHERLOCK MESH</strong><p>Der Detektiv im MeshCore</p></div></div>
+        <p>Ein Werkzeug von KÄRNTEN FUNKT für CarinthiaMesh. Open Source (MIT).</p>
+      </div>
+      <div>
+        <h3>Sherlock</h3>
+        <div class="footer-links"><a href="/">Auswerten</a><a href="/hilfe">Hilfe</a><a href="/hilfe#datenschutz">Was diese Seite speichert</a></div>
+      </div>
+      <div>
+        <h3>Quellen</h3>
+        <div class="footer-links"><a href="https://map.carinthiamesh.com" rel="noopener">map.carinthiamesh.com</a><a href="https://kaernten-funkt.at" rel="noopener">kaernten-funkt.at</a></div>
+        <p class="klein-f">Nur die letzten sieben Tage der öffentlichen Karte.</p>
+      </div>
+    </div>
+    <div class="footer-bottom"><a href="https://kaernten-funkt.at/impressum/" rel="noopener">Impressum</a> · <a href="https://kaernten-funkt.at/datenschutz/" rel="noopener">Datenschutz</a></div>
+  </div>
+</footer>
 </body>
 </html>
