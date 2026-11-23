@@ -83,6 +83,71 @@ def stoesse(alle, fenster_min, schwelle):
     return ergebnis
 
 
+def teile(name):
+    """Name in Ziffern, Buchstaben und Rest zerlegen."""
+    return re.findall(r'\d+|[^\W\d_]+|[^\w]|_', name)
+
+
+def muster_aus_beispielen(beispiele):
+    """Regex aus Beispielnamen. Gleich aufgebaute Namen werden verallgemeinert:
+    gleiche Teile bleiben woertlich, Ziffernfolgen werden \\d{n}, abweichende
+    Woerter [^\\W\\d_]+. Bei verschiedenem Aufbau: gemeinsamer Anfang plus .*"""
+    zerlegt = [teile(b) for b in beispiele]
+    if len(set(len(z) for z in zerlegt)) == 1:
+        teile_re = []
+        for spalte in zip(*zerlegt):
+            if len(set(spalte)) == 1:
+                teile_re.append(re.escape(spalte[0]))
+            elif all(t.isdigit() for t in spalte):
+                laengen = {len(t) for t in spalte}
+                teile_re.append(r'\d{%d}' % laengen.pop() if len(laengen) == 1 else r'\d+')
+            elif all(t.isalpha() for t in spalte):
+                teile_re.append(r'[^\W\d_]+')
+            else:
+                teile_re.append(r'.+')
+        return '^' + ''.join(teile_re) + '$'
+    anfang = beispiele[0]
+    for b in beispiele[1:]:
+        i = 0
+        while i < min(len(anfang), len(b)) and anfang[i] == b[i]:
+            i += 1
+        anfang = anfang[:i]
+    return '^' + re.escape(anfang) + '.*' if anfang else '.*'
+
+
+def pruefe_muster(muster, alle, beispiele=()):
+    """Zeigt, was ein Muster in der Karte trifft."""
+    try:
+        r = re.compile(muster)
+    except re.error as e:
+        sys.exit('Das Muster ist kein gueltiger regulaerer Ausdruck: %s' % e)
+    treffer = [n for n in alle if r.search(n['name'])]
+    print('Muster: %s' % muster)
+    print('Trifft %d von %d Knoten in der Karte.' % (len(treffer), len(alle)))
+    for n in sorted(treffer, key=lambda n: n.get('first_seen') or '')[:8]:
+        print('  %s  %-10s %s' % ((n.get('first_seen') or '')[:16], n['role'], n['name']))
+    if len(treffer) > 8:
+        print('  ... und %d weitere' % (len(treffer) - 8))
+    fehlt = [b for b in beispiele if not r.search(b)]
+    if fehlt:
+        print('ACHTUNG: passt nicht auf die eigenen Beispiele: %s' % fehlt)
+    if treffer:
+        t = sorted((n.get('first_seen') or '')[:10] for n in treffer)
+        print('Zeitraum der Treffer (erste Sichtung): %s bis %s' % (t[0], t[-1]))
+    return treffer
+
+
+def cmd_muster(args):
+    alle = knoten()
+    if args.beispiel:
+        m = muster_aus_beispielen(args.beispiel)
+        print('Vorschlag aus %d Beispielen. Pruefen, ggf. anpassen:\n' % len(args.beispiel))
+        pruefe_muster(m, alle, args.beispiel)
+        print('\nweiter mit:  auswerten --von <UTC> --bis <UTC> --name \'%s\'' % m)
+    else:
+        pruefe_muster(args.muster, alle)
+
+
 def cmd_finden(args):
     alle = knoten()
     s = stoesse(alle, args.luecke, args.schwelle)
@@ -102,11 +167,19 @@ def cmd_auswerten(args):
     alle = knoten()
     nach = {n['public_key'].lower(): n for n in alle}
     von, bis = args.von, args.bis
-    muster = re.compile(args.name) if args.name else None
+    muster = None
+    if args.name:
+        try:
+            muster = re.compile(args.name)
+        except re.error as e:
+            sys.exit('--name ist kein gueltiger regulaerer Ausdruck: %s\n'
+                     'Hilfe beim Bauen:  muster --beispiel "AT-LV8-123456" "AT-LV8-654321"' % e)
     neu = [n for n in alle if von <= (n.get('first_seen') or '')[:16] <= bis
            and (not muster or muster.search(n['name']))]
     if not neu:
-        sys.exit('Keine neuen Knoten im Fenster. Zeiten in UTC, Format 2026-11-21T00:10.')
+        sys.exit('Keine neuen Knoten im Fenster%s. Zeiten in UTC, Format 2026-11-21T00:10.%s'
+                 % (' mit diesem Namensmuster' if muster else '',
+                    '\nMuster pruefen:  muster %s' % json.dumps(args.name) if muster else ''))
     ks = {n['public_key'].lower() for n in neu}
     t = sorted(((zeit(n['first_seen']) + MEZ, n) for n in neu), key=lambda x: x[0])
     out = collections.OrderedDict()
@@ -231,6 +304,10 @@ def main():
     f.add_argument('--schwelle', type=int, default=30, help='mindestens so viele neue Schluessel')
     f.add_argument('--luecke', type=float, default=10, help='groesster Abstand in Minuten')
     f.set_defaults(fn=cmd_finden)
+    m = sub.add_parser('muster', help='Namensmuster (regulaerer Ausdruck) bauen und pruefen')
+    m.add_argument('--beispiel', nargs='+', help='ein paar Namen, die erfasst werden sollen')
+    m.add_argument('--muster', help='ein fertiges Muster nur pruefen')
+    m.set_defaults(fn=cmd_muster)
     a = sub.add_parser('auswerten', help='eine Welle auswerten')
     a.add_argument('--von', required=True, help='UTC, z. B. 2026-11-20T23:40')
     a.add_argument('--bis', required=True, help='UTC, z. B. 2026-11-21T00:10')
@@ -239,6 +316,8 @@ def main():
     a.add_argument('--liste', help='Schluessel als JSON-Array in diese Datei schreiben')
     a.set_defaults(fn=cmd_auswerten)
     args = ap.parse_args()
+    if args.cmd == 'muster' and not (args.beispiel or args.muster):
+        ap.error('muster: --beispiel NAME ... oder --muster REGEX angeben')
     args.fn(args)
 
 

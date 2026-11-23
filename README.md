@@ -20,6 +20,20 @@ Zeiten in **UTC**. `finden` nennt sie mit; die Zeiten in Klammern sind MEZ.
 
 Wer etwas Auffälliges sieht, gibt dem Werkzeug an, **wonach es suchen soll**: Zeitfenster (`--von`, `--bis`) und optional ein Namensmuster (`--name`, regulärer Ausdruck). Alles andere rechnet es selbst.
 
+### Namensmuster bauen
+
+Nicht jeder schreibt gern reguläre Ausdrücke. Mit ein paar Beispielnamen schlägt das Werkzeug eines vor und zeigt, was es in der Karte trifft:
+
+```bash
+python3 sherlock.py muster --beispiel "AT-LV8-123456" "AT-LV8-654321"
+#   Muster: ^AT\-LV8\-\d{6}$      (sechs Ziffern)
+python3 sherlock.py muster --beispiel "AT-LV8-Sensohr" "AT-LV8-Zellinkopf"
+#   Muster: ^AT\-LV8\-[^\W\d_]+$  (ein Wort)
+python3 sherlock.py muster --muster '^AT-LV8-'    # eigenes Muster nur prüfen
+```
+
+Ausgegeben werden die Zahl der Treffer, Beispiele mit Datum der ersten Sichtung und ein Hinweis, wenn das Muster nicht auf die eigenen Beispiele passt. Das Muster immer gegen die Treffer lesen: ein zu weites Muster erfasst auch echte Knoten.
+
 ## Was herauskommt
 
 - Wie viele neue Knoten, welche Rollen, welche Namen, welche Hash-Größe, wie viele Adverts je Knoten
@@ -39,3 +53,7 @@ Wer etwas Auffälliges sieht, gibt dem Werkzeug an, **wonach es suchen soll**: Z
 ## Geplant
 
 Weitere Prüfungen für „komisch“: gleiche Namen mit vielen Schlüsseln, Positionssprünge (Knoten plötzlich weit weg), auffällige Umbenennungen, Uhr-Sprünge.
+
+## Lizenz
+
+MIT, siehe [LICENSE](LICENSE).
